@@ -6,15 +6,17 @@ namespace sdds {
 			<< std::setfill(' ');
 	}
 
-	// String processesors:
-	void trim(string& string) // quick trim
+	// Quick-Trim: Overloaded function that processes strings.
+	void qtrim(string& str)
 	{
-		string.erase(string.find_last_not_of(' ') + 1);
-		string.erase(0, string.find_first_not_of(' '));
+		str.erase(str.find_last_not_of(' ') + 1);
+		str.erase(0, str.find_first_not_of(' '));
 	}
 
-	void erase(string& stream, int n) // quick erase
+	void qtrim(string& str, string& stream, int n)
 	{
+		str.erase(str.find_last_not_of(' ') + 1);
+		str.erase(0, str.find_first_not_of(' '));
 		stream.erase(0, n);
 	}
 
@@ -31,27 +33,22 @@ namespace sdds {
 			
 			// Get string from stream, erase and then trim string:
 			title = stream.substr(0, 25);
-				erase(stream, 25);
-				trim(title);
+			qtrim(title, stream, 25);
 
 			artist = stream.substr(0, 25);
-				erase(stream, 25);
-				trim(artist);
+			qtrim(artist, stream, 25);
 
 			album = stream.substr(0, 25);
-				erase(stream, 25);
-				trim(album);
+			qtrim(album, stream, 25);
 
 			year = stream.substr(0, 5);
-				erase(stream, 5);
-				trim(year);
+			qtrim(year, stream, 5);
 
 			length = stream.substr(0, 5);
-				erase(stream, 5);
-				trim(length);
+			qtrim(length, stream, 5);
 
 			price = stream.substr(0, 5);
-				trim(price);
+			qtrim(price);
 						
 			// Process length using stringstream:
 			stringstream streamLength(length);
@@ -79,51 +76,31 @@ namespace sdds {
 		songs.pop_back();
 	}
 
-	void SongCollection::display(ostream& os)
-	{
-		total = 0;
-		
-		for (auto& i : songs)
-		{
-			os << i << '\n';
-			total += i.length;
-		}
-
-		printbar(os);
-		
-		// Process time:
-		int hrs = total / 3600;
-		int mns = total / 60;
-		mns -= (hrs * 60);
-		int sec = total % 60;
-
-		string time = "Total Listening Time: " + to_string(hrs) + ":" + to_string(mns) + ":" + to_string(sec);
-		
-		os << "|" << right << setw(85) << setfill(' ') << time << " |" << endl;
+	void SongCollection::display(ostream& out) const {
+		for_each(songs.begin(), songs.end(), [&out](const Song
+			& song) {
+				out << song << endl;
+			});
 	}
 
 	void SongCollection::sort(string str)
 	{
-		if (str == "title")
-		{
+		if (str == "title")	{
 			std::sort(songs.begin(), songs.end(), [](Song s1, Song s2) {
 				return s1.title < s2.title;
 				});
 		}
-		else if (str == "artist")
-		{
+		else if (str == "artist") {
 			std::sort(songs.begin(), songs.end(), [](Song s1, Song s2) {
 				return s1.artist < s2.artist;
 				});
 		}
-		else if (str == "album")
-		{
+		else if (str == "album") {
 			std::sort(songs.begin(), songs.end(), [](Song s1, Song s2) {
 				return s1.album < s2.album;
 				});
 		}
-		else if (str == "length")
-		{
+		else if (str == "length") {
 			std::sort(songs.begin(), songs.end(), [](Song s1, Song s2) {
 				return s1.length < s2.length;
 				});
@@ -132,35 +109,31 @@ namespace sdds {
 
 	void SongCollection::cleanAlbum()
 	{
-		for (auto& song : songs)
-		{
-			if (song.album == "[None]")
-				song.album = "";
-		}
+		for_each(songs.begin(), songs.end(), [](Song& song) { song.album = song.album == "[None]" ? "" : song.album; });
 	}
 
 	bool SongCollection::inCollection(string str) const
 	{
-		bool found = false;
-		for (auto& song : songs)
-		{
-			if (str == song.artist)
-				found = true;
-		}
-		return found;
+		auto valid = find_if(songs.begin(), songs.end(),
+			[&str](const Song& song) {return song.artist == str; });
+		return valid != songs.end();
+
 	}
 
-	vector<Song> SongCollection::getSongsForArtist(string str) const
-	{
-		vector<Song> artist;
-		for (auto& song : songs)
-		{
-			if (song.artist == str)
-				artist.push_back(song);
-		}
-		return artist;
-	}
+	::list<Song> SongCollection::getSongsForArtist(string artist) const {
+		auto count = count_if(songs.begin(), songs.end(),
+			[&artist](const Song& song) {
+				return song.artist == artist;
+			});
 
+		list<Song>listed(count);
+		copy_if(songs.begin(), songs.end(), listed.begin(),
+			[&artist](const Song& song) {
+				return song.artist == artist;
+			});
+		return listed;
+	}
+	
 	ostream& operator<<(ostream& os, const Song& song)
 	{
 		os << "| ";

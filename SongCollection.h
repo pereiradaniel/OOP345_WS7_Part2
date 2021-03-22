@@ -1,4 +1,6 @@
-#pragma once // prevent the header from being included more than once.
+#ifndef SDDS_SONGSCOLLECTION_H
+#define SDDS_SONGSCOLLECTION_H
+
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -25,11 +27,13 @@ namespace sdds
 		vector<Song> songs;
 	public:
 		SongCollection(string);
-		void display(ostream&);
+		void display(ostream&) const;
 		void sort(string);
 		void cleanAlbum();
 		bool inCollection(string) const;
-		vector<Song> getSongsForArtist(string) const;
+		// vector<Song> getSongsForArtist(string) const;
+		::list<Song> getSongsForArtist(string) const;
 	};
 	ostream& operator<<(ostream&, const Song&);
 } // sdds
+#endif
